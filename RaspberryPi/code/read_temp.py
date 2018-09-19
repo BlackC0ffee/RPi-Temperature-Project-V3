@@ -19,29 +19,45 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-
-# import serial
-#import time
 import datetime
 import Adafruit_DHT
+from influxdb import client as influxdb
 
 humidity, temperature = Adafruit_DHT.read_retry(22, 2)
 now = datetime.datetime.now().strftime("%d-%m-%Y,%H:%M")
 
+
+#Save data to a file
 f = open("/home/pi/log/temperatureData.csv", "a")
 f.write('{},{:0.1f},{:0.1f}'.format(now, temperature, humidity))
 f.write("\n")
 f.close()
 
+#Safe data to InfluxDB
+influxHost = 'localhost'
+influxUser = 'admin'
+infile = open('/home/pi/code/secretstring', 'r')
+influxPasswd = infile.readline()
+infile.close()
+influxdbName = 'temperature'
 
+#print('{0}'.format(influxPasswd))
 
-#f.write({
+#return influxDB frendly time 2017-02-26T13:33:49.00279827Z (not ealy required, but meh)
+current_time = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 
-#ser = serial.Serial('/dev/ttyACM0', 9600)
-#time.sleep(3) #timeout of 3 seconds 
-#ser.write("1") #trigger the arduino to send temp 
-#data = ser.readline() #read the data 
-#dt = datetime.datetime.now() 
-#f = open("/home/pi/log/temperatureData.csv", "a")
-#f.write(dt.strftime("%d-%m-%Y,%H:%M") + "," + data) # KISS, we just add the data at the end. :)
-#f.close();
+influx_metric = [{
+    'measurement': 'TemperatureSensor',
+    'time': current_time,
+    'fields': {
+        'temperature': temperature,
+        'humidity': humidity
+    }
+}]
+    
+
+try:
+    db = influxdb.InfluxDBClient(influxHost, 8086, influxUser, influxPasswd, influxdbName)
+    db.write_points(influx_metric)
+finally:
+    db.close()
