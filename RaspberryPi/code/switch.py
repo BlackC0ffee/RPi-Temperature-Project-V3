@@ -12,7 +12,7 @@ while True:
     input_state = GPIO.input(18)
     if input_state == False:
         print('Button Pressed')
-	if screen == False:
+    if screen == False:
 		print('screen turned on')
 		screen = True
 	elif screen == True:

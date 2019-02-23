@@ -2,15 +2,32 @@ import gaugette.ssd1306
 import gaugette.platform
 import gaugette.gpio
 from gaugette.fonts import arial_16
-import time
 import sys
 import subprocess
 import RPi.GPIO as GPIO
+from signal import pause
 
-
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 screen = False
+
+def main():
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.add_event_detect(18, GPIO.FALLING, callback=Switch, bouncetime=300)
+
+        try:
+                pause()
+        except KeyboardInterrupt:  
+                GPIO.cleanup()  
+        GPIO.cleanup()
+
+def Switch(channel):
+        global screen
+        if screen == False:
+                On()
+                screen = True
+        elif screen == True:
+                Off()
+                screen = False
 
 def On():
     RESET_PIN = 15
@@ -59,14 +76,5 @@ def Off():
     led.clear_display()
     led.display()
 
-while True:
-    input_state = GPIO.input(18)
-    if input_state == False:
-        
-        if screen == False:
-                On()
-                screen = True
-        elif screen == True:
-                Off()
-                screen = False
-        time.sleep(0.2)
+if __name__ == "__main__":
+    main()
