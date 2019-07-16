@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright (c) 2018 Stijn D'haese
+# Copyright (c) 2018-2019 Stijn D'haese
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,13 +26,6 @@ from influxdb import client as influxdb
 humidity, temperature = Adafruit_DHT.read_retry(22, 2)
 now = datetime.datetime.now().strftime("%d-%m-%Y,%H:%M")
 
-
-#Save data to a file
-f = open("/home/pi/log/temperatureData.csv", "a")
-f.write('{},{:0.1f},{:0.1f}'.format(now, temperature, humidity))
-f.write("\n")
-f.close()
-
 #Safe data to InfluxDB
 influxHost = 'localhost'
 influxUser = 'admin'
@@ -43,7 +36,7 @@ influxdbName = 'temperature'
 
 #print('{0}'.format(influxPasswd))
 
-#return influxDB frendly time 2017-02-26T13:33:49.00279827Z (not ealy required, but meh)
+#return influxDB friendly time 2017-02-26T13:33:49.00279827Z (not really required, but meh)
 current_time = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 
 influx_metric = [{
