@@ -21,20 +21,21 @@
 
 import datetime
 import Adafruit_DHT
+import os
 from influxdb import client as influxdb
 
+#Read Data From DHT22 Sensor
 humidity, temperature = Adafruit_DHT.read_retry(22, 2)
-now = datetime.datetime.now().strftime("%d-%m-%Y,%H:%M")
 
-#Safe data to InfluxDB
+#InfluxDB Connection Details
 influxHost = 'localhost'
 influxUser = 'admin'
-infile = open('/home/pi/code/secretstring', 'r')
-influxPasswd = infile.readline()
-infile.close()
-influxdbName = 'temperature'
+with open(os.path.dirname(os.path.abspath(__file__)) + '/secretstring', 'r') as f:
+    influxPasswd = f.readline().strip()
+f.close()
 
-#print('{0}'.format(influxPasswd))
+#InfluxDB data
+influxdbName = 'temperature'
 
 #return influxDB friendly time 2017-02-26T13:33:49.00279827Z (not really required, but meh)
 current_time = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -47,8 +48,8 @@ influx_metric = [{
         'humidity': humidity
     }
 }]
-    
 
+#Saving data to InfluxDB
 try:
     db = influxdb.InfluxDBClient(influxHost, 8086, influxUser, influxPasswd, influxdbName)
     db.write_points(influx_metric)
